@@ -1,6 +1,6 @@
 #!/bin/bash
 # 搜索 MCP 服务器 - 一键安装脚本
-# 用法：curl -sSL https://your-server.com/install-search-mcp.sh | bash
+# 用法：curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/install.sh | bash
 
 set -e
 
@@ -14,11 +14,19 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# 检测操作系统
+OS="$(uname -s)"
+echo "📋 检测系统：$OS"
+
 # 检查 Python
 echo "📋 检查系统依赖..."
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}❌ 错误：需要 Python 3.8+${NC}"
-    echo "请安装：sudo apt install python3 python3-pip"
+    if [[ "$OS" == "Darwin" ]]; then
+        echo "请安装：brew install python3"
+    else
+        echo "请安装：sudo apt install python3 python3-pip"
+    fi
     exit 1
 fi
 
@@ -28,7 +36,11 @@ echo "✅ Python $PYTHON_VERSION 已安装"
 # 检查 pip
 if ! command -v pip3 &> /dev/null; then
     echo -e "${YELLOW}⚠️  安装 pip3...${NC}"
-    sudo apt install -y python3-pip
+    if [[ "$OS" == "Darwin" ]]; then
+        brew install python3
+    else
+        sudo apt install -y python3-pip
+    fi
 fi
 
 # 创建安装目录
@@ -41,106 +53,37 @@ mkdir -p "$INSTALL_DIR"
 echo ""
 echo "📥 下载文件..."
 
-# search_mcp.py
-cat > "$INSTALL_DIR/search_mcp.py" << 'PYTHON_EOF'
-#!/usr/bin/env python3
-"""搜索 MCP 服务器 - DuckDuckGo 后端"""
+# 从 GitHub 下载主程序
+echo "  - 下载 search_mcp.py..."
+curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/search_mcp.py -o "$INSTALL_DIR/search_mcp.py" || {
+    echo -e "${RED}❌ 下载失败，请检查网络连接${NC}"
+    exit 1
+}
 
-import sys
-from duckduckgo_search import DDGS
-
-TOOLS = [
-    {
-        "name": "web_search",
-        "description": "搜索网络信息",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "搜索关键词"},
-                "max_results": {"type": "integer", "description": "返回结果数量 (1-10)", "default": 5}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "news_search",
-        "description": "搜索新闻",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "搜索关键词"},
-                "max_results": {"type": "integer", "description": "返回结果数量 (1-10)", "default": 5}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "search_summary",
-        "description": "搜索并生成摘要",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "搜索关键词"}
-            },
-            "required": ["query"]
-        }
-    }
-]
-
-def web_search(query, max_results=5):
-    max_results = min(max_results, 10)
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-        return [{"title": r.get("title", ""), "url": r.get("href", ""), "snippet": r.get("body", ""), "source": r.get("source", "")} for r in results]
-    except Exception as e:
-        return [{"error": f"搜索失败：{str(e)}"}]
-
-def news_search(query, max_results=5):
-    max_results = min(max_results, 10)
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.news(query, max_results=max_results))
-        return [{"title": r.get("title", ""), "url": r.get("url", ""), "snippet": r.get("body", ""), "source": r.get("source", ""), "date": r.get("date", "")} for r in results]
-    except Exception as e:
-        return [{"error": f"新闻搜索失败：{str(e)}"}]
-
-def search_summary(query):
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=5))
-        if not results:
-            return "未找到相关结果"
-        summary = f"搜索「{query}」找到 {len(results)} 个结果：\n\n"
-        for i, r in enumerate(results, 1):
-            summary += f"{i}. **{r.get('title', '')}**\n   {r.get('body', '')}\n   来源：{r.get('source', '')}\n   链接：{r.get('href', '')}\n\n"
-        return summary
-    except Exception as e:
-        return f"搜索失败：{str(e)}"
-
-if __name__ == "__main__":
-    print("🔍 搜索 MCP 服务器已启动")
-    print("可用工具：web_search, news_search, search_summary")
-    print("配置 MCP 客户端连接到本脚本")
-PYTHON_EOF
-
-# requirements.txt
-cat > "$INSTALL_DIR/requirements.txt" << 'REQ_EOF'
+# 下载 requirements.txt
+echo "  - 下载 requirements.txt..."
+curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/requirements.txt -o "$INSTALL_DIR/requirements.txt" || {
+    # 如果 requirements.txt 不存在，创建默认的
+    cat > "$INSTALL_DIR/requirements.txt" << 'EOF'
 mcp>=1.0.0
 ddgs>=8.0.0
-REQ_EOF
-
-# install.sh (本脚本)
-cp "$0" "$INSTALL_DIR/install.sh" 2>/dev/null || true
+EOF
+}
 
 # 设置权限
+echo "  - 设置文件权限..."
 chmod +x "$INSTALL_DIR/search_mcp.py"
-chmod +x "$INSTALL_DIR/install.sh"
 
 # 安装依赖
 echo ""
 echo "📦 安装 Python 依赖..."
-pip3 install --user -r "$INSTALL_DIR/requirements.txt"
+if [[ "$OS" == "Darwin" ]]; then
+    # macOS 使用 --user 参数
+    pip3 install --user -r "$INSTALL_DIR/requirements.txt"
+else
+    # Linux 尝试系统安装，失败则用 --user
+    pip3 install -r "$INSTALL_DIR/requirements.txt" 2>/dev/null || pip3 install --user -r "$INSTALL_DIR/requirements.txt"
+fi
 
 # 创建配置文件
 cat > "$INSTALL_DIR/config.json" << 'CONFIG_EOF'
