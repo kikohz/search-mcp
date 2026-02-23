@@ -15,18 +15,26 @@
 ### 方法 1：一键安装（推荐）
 
 ```bash
+# 一键安装（自动下载并安装）
+curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/install.sh | bash
+```
+
+或分步执行：
+```bash
 # 下载安装脚本
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/search-mcp/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/install.sh -o install.sh
 
 # 运行安装
 bash install.sh
 ```
 
-### 方法 2：手动安装
+### 方法 2：Git 克隆
 
 ```bash
 # 克隆仓库
-git clone https://github.com/YOUR_USERNAME/search-mcp.git
+git clone https://github.com/kikohz/search-mcp.git
+
+# 进入目录
 cd search-mcp
 
 # 安装依赖
@@ -36,10 +44,21 @@ pip3 install -r requirements.txt
 python3 search_mcp.py
 ```
 
-### 方法 3：使用 pip
+### 方法 3：手动下载
 
 ```bash
+# 创建目录
+mkdir -p ~/.local/search-mcp
+cd ~/.local/search-mcp
+
+# 下载主程序
+curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/search_mcp.py -o search_mcp.py
+
+# 安装依赖
 pip3 install mcp ddgs
+
+# 测试
+python3 search_mcp.py
 ```
 
 ## 🔌 配置
@@ -56,11 +75,13 @@ pip3 install mcp ddgs
   "mcpServers": {
     "search": {
       "command": "python3",
-      "args": ["/path/to/search-mcp/search_mcp.py"]
+      "args": ["/home/用户名/.local/search-mcp/search_mcp.py"]
     }
   }
 }
 ```
+
+> 💡 **提示：** 将 `/home/用户名/` 替换为你的实际用户目录（Windows 使用 `C:\\Users\\用户名\\`）
 
 ### Cursor IDE
 
@@ -71,7 +92,20 @@ pip3 install mcp ddgs
   "mcpServers": {
     "search": {
       "command": "python3",
-      "args": ["/path/to/search-mcp/search_mcp.py"]
+      "args": ["/home/用户名/.local/search-mcp/search_mcp.py"]
+    }
+  }
+}
+```
+
+### 其他 MCP 客户端
+
+```json
+{
+  "mcpServers": {
+    "search": {
+      "command": "python3",
+      "args": ["~/.local/search-mcp/search_mcp.py"]
     }
   }
 }
