@@ -1,3 +1,1 @@
-# SearXNG 使用 Python 内置 urllib，无需额外依赖
-# 可选：MCP SDK 用于开发
-# mcp>=1.0.0
+# 无外部依赖 - 使用 Python 内置库
