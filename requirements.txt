@@ -1,2 +1,3 @@
-mcp>=1.0.0
-ddgs>=8.0.0
+# SearXNG 使用 Python 内置 urllib，无需额外依赖
+# 可选：MCP SDK 用于开发
+# mcp>=1.0.0

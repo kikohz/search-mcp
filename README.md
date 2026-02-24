@@ -1,6 +1,6 @@
 # Search MCP Server
 
-🔍 免费的网络搜索 MCP (Model Context Protocol) 服务器，使用 DuckDuckGo 作为后端。
+🔍 免费的网络搜索 MCP (Model Context Protocol) 服务器，使用 **SearXNG** 作为后端。
 
 ## ✨ 特性
 
@@ -8,7 +8,8 @@
 - 🔍 **多种搜索** - 网页搜索、新闻搜索、搜索摘要
 - 🚀 **快速部署** - 一键安装脚本
 - 🔌 **标准 MCP** - 兼容 Claude Desktop、Cursor 等所有 MCP 客户端
-- 🛡️ **隐私保护** - 本地运行，数据不经过第三方
+- 🛡️ **隐私保护** - 本地部署，数据不经过第三方
+- 🌐 **多引擎聚合** - 聚合 Google、DuckDuckGo、Brave、Wikipedia 等多个搜索引擎
 
 ## 📦 安装
 
@@ -54,12 +55,23 @@ cd ~/.local/search-mcp
 # 下载主程序
 curl -fsSL https://raw.githubusercontent.com/kikohz/search-mcp/main/search_mcp.py -o search_mcp.py
 
-# 安装依赖
-pip3 install mcp ddgs
+# 安装依赖（只需要 urllib，Python 内置）
+# pip3 install mcp  # 可选，用于 MCP 开发
 
 # 测试
 python3 search_mcp.py
 ```
+
+### 自定义 SearXNG 服务器
+
+编辑 `search_mcp.py`，修改：
+
+```python
+# 第 14 行
+SEARXNG_URL = "http://你的-searxng-server:端口"
+```
+
+默认配置：`http://100.126.219.109:7070`
 
 ## 🔌 配置
 
